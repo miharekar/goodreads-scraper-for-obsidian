@@ -13,7 +13,7 @@ def get_books_on(shelf)
       "isbn" => item.xpath("isbn").text.to_i,
       "title" => item.xpath("title").text,
       "author" => item.xpath("author_name").text,
-      "rating" => item.xpath("user_rating").text.to_i.times.map { "⭐️" }.join(" "),
+      "rating" => item.xpath("user_rating").text.to_i.times.map { "⭐️" }.join,
       "image_url" => item.xpath("book_large_image_url").text,
       "book_url" => "https://www.goodreads.com/book/show/#{item.xpath('book_id').text}"
     }
@@ -25,17 +25,20 @@ def update_books_on(shelf)
   books.each do |book|
     short_title = book["title"].split(":").first
     filename = "#{ENV['BOOKS_DIR']}#{short_title}.md"
-    exists = File.exist?(filename)
-    next unless exists
+    next unless File.exist?(filename)
 
-    content = File.read(filename)
+    File.write(filename, content_with_frontmatter(File.read(filename), book))
+  end
+end
+
+def content_with_frontmatter(content, book)
+  if content.start_with?("---")
+    existing = YAML.safe_load(content)
+    frontmatter = "#{existing.merge(book).to_yaml}---"
+    content.sub(/^---.*?---/m, frontmatter)
+  else
     frontmatter = "#{book.to_yaml}---"
-    content = if content.start_with?("---")
-                content.sub(/^---.*?---/m, frontmatter)
-              else
-                "#{frontmatter}\n#{content}"
-              end
-    File.write(filename, content)
+    "#{frontmatter}\n#{content}"
   end
 end
 
