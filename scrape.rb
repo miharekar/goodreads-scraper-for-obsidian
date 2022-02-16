@@ -9,14 +9,17 @@ def get_books_on(shelf)
   url = "#{GOODREADS_URL}/#{ENV['USER_ID']}?key=#{ENV['RSS_KEY']}&shelf=#{shelf}"
   doc = Nokogiri::XML(Faraday.get(url).body)
   doc.xpath("//item").map do |item|
-    {
-      "isbn" => item.xpath("isbn").text.to_i,
-      "title" => item.xpath("title").text,
-      "author" => item.xpath("author_name").text,
-      "rating" => item.xpath("user_rating").text.to_i.times.map { "⭐️" }.join,
-      "image_url" => item.xpath("book_large_image_url").text,
-      "book_url" => "https://www.goodreads.com/book/show/#{item.xpath('book_id').text}"
-    }
+    book = {}
+    read_at = item.xpath("user_read_at").text
+    book["read_at"] = DateTime.parse(item.xpath("user_read_at").text).iso8601 unless read_at.blank?
+    book.merge({
+                 "isbn" => item.xpath("isbn").text.to_i,
+                 "title" => item.xpath("title").text,
+                 "author" => item.xpath("author_name").text,
+                 "rating" => item.xpath("user_rating").text.to_i.times.map { "⭐️" }.join,
+                 "image_url" => item.xpath("book_large_image_url").text,
+                 "book_url" => "https://www.goodreads.com/book/show/#{item.xpath('book_id').text}"
+               })
   end
 end
 
@@ -32,14 +35,11 @@ def update_books_on(shelf)
 end
 
 def content_with_frontmatter(content, book)
-  if content.start_with?("---")
-    existing = YAML.safe_load(content)
-    frontmatter = "#{existing.merge(book).to_yaml}---"
-    content.sub(/^---.*?---/m, frontmatter)
-  else
-    frontmatter = "#{book.to_yaml}---"
-    "#{frontmatter}\n#{content}"
-  end
+  content = "---\n---\n#{content}" unless content.start_with?("---")
+  data = YAML.safe_load(content) || {}
+  data["goodreads"] = (data["goodreads"] || {}).merge(book)
+  frontmatter = "#{data.to_yaml}---"
+  content.sub(/^---.*?---/m, frontmatter)
 end
 
 puts "Updating books on 'read' shelf"

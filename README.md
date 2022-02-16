@@ -14,13 +14,13 @@ The script then populates your books frontmatter like so:
 
 ```
 ---
-isbn: 316461369
-title: 'Billion Dollar Loser: The Epic Rise and Spectacular Fall of Adam Neumann and
-  WeWork'
-author: Reeves  Wiedeman
-rating: "⭐️⭐️⭐️⭐️"
-image_url: https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1595814305l/54502643.jpg
-book_url: https://www.goodreads.com/book/show/54502643
+goodreads:
+  isbn: 316461369
+  title: 'Billion Dollar Loser: The Epic Rise and Spectacular Fall of Adam Neumann and WeWork'
+  author: Reeves  Wiedeman
+  rating: "⭐️⭐️⭐️⭐️"
+  image_url: https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1595814305l/54502643.jpg
+  book_url: https://www.goodreads.com/book/show/54502643
 ---
 ```
 
@@ -29,11 +29,11 @@ And then you can do something like:
 ~~~
 ```dataview
 TABLE WITHOUT ID
-  "[![cover|150](" + image_url + ")](" + book_url + ")" + rating AS Cover,
-  "[[" + file.path + "|" + title + "]]" AS Title,
+  "[![goodreads.cover|150](" + goodreads.image_url + ")](" + goodreads.book_url + ")" + goodreads.rating AS Cover,
+  "[[" + file.path + "|" + goodreads.title + "]]" AS Title,
   file.tags AS Tags
 FROM "books" AND !"books/extra"
-WHERE title
+WHERE goodreads.title
 SORT file.ctime DESC
 ```
 ~~~
