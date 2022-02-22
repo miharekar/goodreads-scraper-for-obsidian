@@ -28,9 +28,13 @@ def update_books_on(shelf)
   books.each do |book|
     short_title = book["title"].split(":").first
     filename = "#{ENV['BOOKS_DIR']}#{short_title}.md"
-    next unless File.exist?(filename)
-
-    File.write(filename, content_with_frontmatter(File.read(filename), book))
+    if File.exist?(filename)
+      File.write(filename, content_with_frontmatter(File.read(filename), book))
+    else
+      puts "File #{filename} does not exist."
+      # puts "Do you want to create it?"
+      # %w[yes y].include?(gets.chomp.downcase) ? File.write(filename, content_with_frontmatter("", book)) : next
+    end
   end
 end
 
