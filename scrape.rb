@@ -6,7 +6,7 @@ require "dotenv/load"
 
 GOODREADS_URL = "https://www.goodreads.com/review/list_rss"
 def get_books_on(shelf)
-  url = "#{GOODREADS_URL}/#{ENV['USER_ID']}?key=#{ENV['RSS_KEY']}&shelf=#{shelf}"
+  url = "#{GOODREADS_URL}/#{ENV.fetch('USER_ID', nil)}?key=#{ENV.fetch('RSS_KEY', nil)}&shelf=#{shelf}"
   doc = Nokogiri::XML(Faraday.get(url).body)
   doc.xpath("//item").map do |item|
     book = {}
@@ -27,7 +27,7 @@ def update_books_on(shelf)
   books = get_books_on(shelf)
   books.each do |book|
     short_title = book["title"].split(":").first
-    filename = "#{ENV['BOOKS_DIR']}#{short_title}.md"
+    filename = "#{ENV.fetch('BOOKS_DIR', nil)}#{short_title}.md"
     if File.exist?(filename)
       File.write(filename, content_with_frontmatter(File.read(filename), book))
     else
