@@ -2,8 +2,9 @@
 
 source "https://rubygems.org"
 
-gem "pry"
+gem "debug"
 gem "rubocop"
 gem "faraday"
 gem "nokogiri"
 gem "dotenv"
+gem "activesupport"
