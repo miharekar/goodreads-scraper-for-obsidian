@@ -2,6 +2,7 @@
 
 require "bundler"
 Bundler.require
+require "active_support/core_ext/object/blank"
 require "dotenv/load"
 
 GOODREADS_URL = "https://www.goodreads.com/review/list_rss"
@@ -10,8 +11,8 @@ def get_books_on(shelf)
   doc = Nokogiri::XML(Faraday.get(url).body)
   doc.xpath("//item").map do |item|
     book = {}
-    read_at = item.xpath("user_read_at").text
-    book["read_at"] = DateTime.parse(item.xpath("user_read_at").text).iso8601 unless read_at.blank?
+    read_at = item.xpath("user_read_at").text.presence || item.xpath("user_date_added").text.presence
+    book["read_at"] = DateTime.parse(read_at).iso8601 unless read_at.blank?
     book.merge({
                  "isbn" => item.xpath("isbn").text.to_i,
                  "title" => item.xpath("title").text,
