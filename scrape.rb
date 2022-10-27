@@ -26,15 +26,18 @@ end
 
 def update_books_on(shelf)
   books = get_books_on(shelf)
+  three_months = 3 * 30 * 24 * 60 * 60
+  recent = (Time.now - three_months).iso8601
+
   books.each do |book|
     short_title = book["title"].split(":").first
     filename = "#{ENV.fetch('BOOKS_DIR', nil)}#{short_title}.md"
     if File.exist?(filename)
       File.write(filename, content_with_frontmatter(File.read(filename), book))
-    else
+    elsif book["read_at"].present? && book["read_at"] > recent
       puts "File #{filename} does not exist."
-      # puts "Do you want to create it?"
-      # %w[yes y].include?(gets.chomp.downcase) ? File.write(filename, content_with_frontmatter("", book)) : next
+      puts "Do you want to create it?"
+      %w[yes y].include?(gets.chomp.downcase) ? File.write(filename, content_with_frontmatter("", book)) : next
     end
   end
 end
