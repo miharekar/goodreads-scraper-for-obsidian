@@ -35,9 +35,8 @@ def update_books_on(shelf)
     if File.exist?(filename)
       File.write(filename, content_with_frontmatter(File.read(filename), book))
     elsif book["read_at"].present? && book["read_at"] > recent
-      puts "File #{filename} does not exist."
-      puts "Do you want to create it?"
-      %w[yes y].include?(gets.chomp.downcase) ? File.write(filename, content_with_frontmatter("", book)) : next
+      File.write(filename, content_with_frontmatter("", book))
+      puts "File #{filename} created."
     end
   end
 end
