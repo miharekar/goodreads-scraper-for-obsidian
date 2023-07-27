@@ -44,10 +44,9 @@ end
 def content_with_frontmatter(content, book)
   content = "---\n---\n#{content}" unless content.start_with?("---")
   data = YAML.safe_load(content) || {}
-  goodreads = (data["goodreads"] || {})
-  book.delete("read_at") if goodreads["read_at"].present?
-  goodreads = goodreads.merge(book)
-  data["goodreads"] = goodreads
+  book.delete("read_at") if data["gr_read_at"].present?
+  gr_data = book.transform_keys { |k| "gr_#{k}" }
+  data = data.merge(gr_data)
   frontmatter = "#{data.to_yaml}---"
   content.sub(/^---.*?---/m, frontmatter)
 end
