@@ -30,7 +30,7 @@ def update_books_on(shelf)
   recent = (Time.now - three_months).iso8601
 
   books.each do |book|
-    short_title = book["title"].split(":").first
+    short_title = book["title"].split(":").first.gsub("/", "-")
     filename = "#{ENV.fetch('BOOKS_DIR', nil)}#{short_title}.md"
     if File.exist?(filename)
       File.write(filename, content_with_frontmatter(File.read(filename), book))
