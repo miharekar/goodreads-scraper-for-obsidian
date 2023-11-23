@@ -30,9 +30,13 @@ def update_books_on(shelf)
   recent = (Time.now - three_months).iso8601
 
   books.each do |book|
-    short_title = book["title"].split(":").first.gsub("/", "-")
+    short_title = book["short_title"].presence || book["title"].split(":").first.gsub("/", "-")
     filename = "#{ENV.fetch('BOOKS_DIR', nil)}#{short_title}.md"
     if File.exist?(filename)
+      unless YAML.load_file(filename, permitted_classes: [Time, Symbol])["gr_isbn"] == book["isbn"]
+        book["short_title"] = "#{short_title} (#{book['author']})"
+        redo
+      end
       File.write(filename, content_with_frontmatter(File.read(filename), book))
     elsif book["read_at"].present? && book["read_at"] > recent
       File.write(filename, content_with_frontmatter("", book))
@@ -43,8 +47,9 @@ end
 
 def content_with_frontmatter(content, book)
   content = "---\n---\n#{content}" unless content.start_with?("---")
-  data = YAML.safe_load(content) || {}
+  data = YAML.load(content, permitted_classes: [Time, Symbol]) || {}
   book.delete("read_at") if data["gr_read_at"].present?
+  data["gr_read_at"] = data["gr_read_at"].to_s
   gr_data = book.transform_keys { |k| "gr_#{k}" }
   data = data.merge(gr_data)
   frontmatter = "#{data.to_yaml}---"
